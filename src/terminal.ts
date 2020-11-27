@@ -382,3 +382,5 @@ export function provideTerminalService() {
 export function providePlatformIOIDEService() {
   return getInstance().providePlatformIOIDEService()
 }
+
+export { Terminal as TerminalPackage }

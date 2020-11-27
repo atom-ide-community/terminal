@@ -1,9 +1,7 @@
-/** @babel */
-
-import { getInstance } from "../dist/terminal"
+import { getInstance, TerminalPackage } from "../src/terminal"
 
 describe("terminal", () => {
-  let terminal
+  let terminal: TerminalPackage
 
   beforeEach(() => {
     terminal = getInstance()
@@ -11,19 +9,22 @@ describe("terminal", () => {
 
   describe("unfocus()", () => {
     it("focuses atom-workspace", async () => {
+      // @ts-ignore
       jasmine.attachToDOM(atom.views.getView(atom.workspace))
       const model = await terminal.openInCenterOrDock(atom.workspace)
       await model.initializedPromise
-      await model.element.createTerminal()
+      await model.element!.createTerminal()
 
+      // @ts-ignore
       expect(model.element).toHaveFocus()
       terminal.unfocus()
+      // @ts-ignore
       expect(model.element).not.toHaveFocus()
     })
   })
 
   describe("runCommands()", () => {
-    let activeTerminal, newTerminal, commands
+    let activeTerminal: any, newTerminal: any, commands: string[], getActiveTerminalSpy: jasmine.Spy
     beforeEach(() => {
       activeTerminal = {
         element: {
@@ -38,7 +39,7 @@ describe("terminal", () => {
         runCommand: jasmine.createSpy("newTerminal.runCommand"),
       }
       commands = ["command 1", "command 2"]
-      spyOn(terminal, "getActiveTerminal").and.returnValue(activeTerminal)
+      getActiveTerminalSpy = spyOn(terminal, "getActiveTerminal").and.returnValue(activeTerminal)
       spyOn(terminal, "open").and.returnValue(newTerminal)
     })
 
@@ -61,7 +62,7 @@ describe("terminal", () => {
     })
 
     it("runs commands in new terminal if none active", async () => {
-      terminal.getActiveTerminal.and.returnValue()
+      getActiveTerminalSpy.and.returnValue(undefined)
       atom.config.set("terminal.runInActive", true)
       await terminal.runCommands(commands)
 

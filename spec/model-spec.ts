@@ -1,16 +1,15 @@
-/** @babel */
+import { TerminalModel } from "../src/model"
 
-import { TerminalModel } from "../dist/model"
-
+import { Pane } from "atom"
 import fs from "fs-extra"
 import path from "path"
-
+// @ts-ignore
 import temp from "temp"
 
 temp.track()
 
 describe("TerminalModel", () => {
-  let model, pane, element, tmpdir, uri, terminalsSet
+  let model: TerminalModel, pane: Pane, element: any, tmpdir: string, uri: string, terminalsSet: Set<TerminalModel>
 
   beforeEach(async () => {
     uri = "terminal://somesessionid/"
@@ -90,7 +89,7 @@ describe("TerminalModel", () => {
   it("constructor with previous active item which exists in project path", async () => {
     const previousActiveItem = jasmine.createSpyObj("somemodel", ["getPath"])
     spyOn(atom.workspace, "getActivePaneItem").and.returnValue(previousActiveItem)
-    const expected = ["/some/dir", null]
+    const expected: any = ["/some/dir", null]
     spyOn(atom.project, "relativizePath").and.returnValue(expected)
     const newModel = new TerminalModel({
       uri,
@@ -111,6 +110,7 @@ describe("TerminalModel", () => {
   it("destroy() check element is destroyed when set", () => {
     model.element = element
     model.destroy()
+    // @ts-ignore
     expect(model.element.destroy).toHaveBeenCalled()
   })
 
@@ -137,7 +137,9 @@ describe("TerminalModel", () => {
 
   it("getElement()", () => {
     const expected = { somekey: "somevalue" }
+    // @ts-ignore
     model.element = expected
+    // @ts-ignore
     expect(model.getElement()).toBe(expected)
   })
 
@@ -193,34 +195,34 @@ describe("TerminalModel", () => {
   })
 
   it("handleNewDataArrival() current item is active item", () => {
-    pane.getActiveItem.and.returnValue(model)
+    ;(pane.getActiveItem as jasmine.Spy).and.returnValue(model)
     model.pane = pane
     model.handleNewDataArrival()
     expect(model.modified).toBe(false)
   })
 
   it("handleNewDataArrival() current item is not active item", () => {
-    pane.getActiveItem.and.returnValue({})
+    ;(pane.getActiveItem as jasmine.Spy).and.returnValue({})
     model.pane = pane
     model.handleNewDataArrival()
     expect(model.modified).toBe(true)
   })
 
   it("handleNewDataArrival() current item is not in any pane", () => {
-    model.pane = null
+    model.pane = undefined
     model.handleNewDataArrival()
     expect(model.modified).toBe(true)
   })
 
   it("handleNewDataArrival() model initially has no pane set", () => {
-    pane.getActiveItem.and.returnValue({})
+    ;(pane.getActiveItem as jasmine.Spy).and.returnValue({})
     spyOn(atom.workspace, "paneForItem").and.returnValue(pane)
     model.handleNewDataArrival()
     expect(atom.workspace.paneForItem).toHaveBeenCalled()
   })
 
   it("handleNewDataArrival() modified value of false not changed", () => {
-    pane.getActiveItem.and.returnValue(model)
+    ;(pane.getActiveItem as jasmine.Spy).and.returnValue(model)
     model.pane = pane
     spyOn(model.emitter, "emit")
     model.handleNewDataArrival()
@@ -228,7 +230,7 @@ describe("TerminalModel", () => {
   })
 
   it("handleNewDataArrival() modified value of true not changed", () => {
-    pane.getActiveItem.and.returnValue({})
+    ;(pane.getActiveItem as jasmine.Spy).and.returnValue({})
     model.pane = pane
     model.modified = true
     spyOn(model.emitter, "emit")
@@ -237,7 +239,7 @@ describe("TerminalModel", () => {
   })
 
   it("handleNewDataArrival() modified value changed", () => {
-    pane.getActiveItem.and.returnValue({})
+    ;(pane.getActiveItem as jasmine.Spy).and.returnValue({})
     model.pane = pane
     spyOn(model.emitter, "emit")
     model.handleNewDataArrival()
@@ -256,13 +258,13 @@ describe("TerminalModel", () => {
   it("refitTerminal() with element set", () => {
     model.element = element
     model.refitTerminal()
-    expect(model.element.refitTerminal).toHaveBeenCalled()
+    expect(model.element!.refitTerminal).toHaveBeenCalled()
   })
 
   it("focusOnTerminal()", () => {
     model.element = element
     model.focusOnTerminal()
-    expect(model.element.focusOnTerminal).toHaveBeenCalled()
+    expect(model.element!.focusOnTerminal).toHaveBeenCalled()
   })
 
   it("focusOnTerminal() reset modified value old modified value was false", () => {
@@ -296,7 +298,7 @@ describe("TerminalModel", () => {
   it("exit()", () => {
     model.pane = pane
     model.exit()
-    expect(model.pane.destroyItem.calls.allArgs()).toEqual([[model, true]])
+    expect((model.pane.destroyItem as jasmine.Spy).calls.allArgs()).toEqual([[model, true]])
   })
 
   it("restartPtyProcess() no element set", () => {
@@ -307,20 +309,20 @@ describe("TerminalModel", () => {
   it("restartPtyProcess() element set", () => {
     model.element = element
     model.restartPtyProcess()
-    expect(model.element.restartPtyProcess).toHaveBeenCalled()
+    expect(model.element!.restartPtyProcess).toHaveBeenCalled()
   })
 
   it("copyFromTerminal()", () => {
     model.element = element
     model.copyFromTerminal()
-    expect(model.element.terminal.getSelection).toHaveBeenCalled()
+    expect(model.element!.terminal!.getSelection).toHaveBeenCalled()
   })
 
   it("runCommand(cmd)", () => {
     model.element = element
     const expectedText = "some text"
     model.runCommand(expectedText)
-    expect(model.element.ptyProcess.write.calls.allArgs()).toEqual([
+    expect((model.element!.ptyProcess!.write as jasmine.Spy).calls.allArgs()).toEqual([
       [expectedText + (process.platform === "win32" ? "\r" : "\n")],
     ])
   })
@@ -329,12 +331,12 @@ describe("TerminalModel", () => {
     model.element = element
     const expectedText = "some text"
     model.pasteToTerminal(expectedText)
-    expect(model.element.ptyProcess.write.calls.allArgs()).toEqual([[expectedText]])
+    expect((model.element!.ptyProcess!.write as jasmine.Spy).calls.allArgs()).toEqual([[expectedText]])
   })
 
   it("setActive()", async function () {
     const activePane = atom.workspace.getCenter().getActivePane()
-    const newTerminalsSet = new Set()
+    const newTerminalsSet: Set<TerminalModel> = new Set()
     const model1 = new TerminalModel({
       uri: uri,
       terminalsSet: newTerminalsSet,
@@ -358,7 +360,7 @@ describe("TerminalModel", () => {
 
   describe("setNewPane", () => {
     it("(mock)", async () => {
-      const expected = { getContainer: () => ({ getLocation: () => {} }) }
+      const expected: any = { getContainer: () => ({ getLocation: () => {} }) }
       model.setNewPane(expected)
       expect(model.pane).toBe(expected)
       expect(model.dock).toBe(undefined)
@@ -400,6 +402,7 @@ describe("TerminalModel", () => {
     const activePane = atom.workspace.getCenter().getActivePane()
     model.setNewPane(activePane)
     expect(model.isVisible()).toBe(false)
+    // @ts-ignore
     activePane.setActiveItem(model)
     expect(model.isVisible()).toBe(true)
   })
@@ -408,6 +411,7 @@ describe("TerminalModel", () => {
     const dock = atom.workspace.getBottomDock()
     const activePane = dock.getActivePane()
     model.setNewPane(activePane)
+    // @ts-ignore
     activePane.setActiveItem(model)
     expect(model.isVisible()).toBe(false)
     dock.show()
@@ -449,7 +453,7 @@ describe("TerminalModel", () => {
   })
 
   describe("recalculateActive()", () => {
-    const createTerminals = (num = 1) => {
+    const createTerminals = (num = 1): TerminalModel[] => {
       const terminals = []
       for (let i = 0; i < num; i++) {
         terminals.push({
@@ -461,7 +465,7 @@ describe("TerminalModel", () => {
           title: `title ${i}`,
         })
       }
-      return terminals
+      return terminals as TerminalModel[]
     }
 
     it("active first", () => {
@@ -502,7 +506,9 @@ describe("TerminalModel", () => {
       spyOn(terminals[0].emitter, "emit")
       spyOn(terminals[1].emitter, "emit")
       TerminalModel.recalculateActive(new Set(terminals))
+      // @ts-ignore
       expect(terminals[0].emitter.emit).toHaveBeenCalledWith("did-change-title", "title 0")
+      // @ts-ignore
       expect(terminals[1].emitter.emit).toHaveBeenCalledWith("did-change-title", "title 1")
     })
   })
